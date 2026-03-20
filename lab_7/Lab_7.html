@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Практичні завдання (JavaScript)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      color: #111;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 30px;
+    }
+    .task-card {
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+    .task-card h2 {
+      margin-top: 0;
+      font-size: 1.3em;
+      margin-bottom: 15px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      font-size: 0.9em;
+    }
+    .form-group input {
+      padding: 8px;
+      width: 100%;
+      max-width: 300px;
+      border: 1px solid #999;
+      border-radius: 3px;
+    }
+    button {
+      padding: 6px 15px;
+      border: 1px solid #999;
+      background-color: #f0f0f0;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    button:hover {
+      background-color: #e0e0e0;
+    }
+    /* Стилі для Завдання 5 */
+    #elid {
+      width: 100px;
+      height: 100px;
+      background-color: #e74c3c;
+      border-radius: 8px;
+      position: relative;
+      left: 0;
+      transition: left 0.3s ease;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Практичні завдання (JavaScript)</h1>
+
+<div class="task-card">
+  <h2>Завдання 1: Пріоритет завантаження скриптів</h2>
+  <p>
+    Першим виконається <b>big.js</b>, оскільки браузер виконує стандартні скрипти суворо в порядку їхнього розташування в HTML-документі.
+  </p>
+</div>
+
+<div class="task-card">
+  <h2>Завдання 2: Логіка та змінні</h2>
+  <ul>
+    <li><b>x = 5</b> (оскільки a *= 2 дає 4, і 1 + 4 = 5).</li>
+    <li>Так, <b>alert</b> виконається, оскільки непорожній рядок "0" у логічному контексті дорівнює <i>true</i>.</li>
+    <li>Змінна admin дорівнює "Василь" (результат виведено в консоль).</li>
+  </ul>
+  <script>
+    console.log("--- Завдання 2 ---");
+    let admin, name = "Василь";
+    admin = name;
+    console.log("Значення admin:", admin);
+  </script>
+</div>
+
+<div class="task-card">
+  <h2>Завдання 3: Робота з API (Fetch) та фільтрація</h2>
+  <div class="form-group">
+    <label for="countyInput">Введіть назву округу (наприклад, Baldwin County, Alabama):</label>
+    <input type="text" id="countyInput" placeholder="Baldwin County, Alabama">
+    <button id="searchBtn">Отримати код</button>
+  </div>
+  <div id="result" style="margin-top: 10px; font-weight: bold; color: #2c3e50;"></div>
+</div>
+
+<script>
+  let countiesData = [];
+
+  async function fetchCounties() {
+    const url = "https://api.census.gov/data/2020/acs/acs5/profile?get=NAME&for=county:*";
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      const [headers, ...rows] = data;
+
+      countiesData = rows.map(row => ({
+        name: row[0],
+        state: row[1],
+        county: row[2],
+        code: row[1] + row[2]
+      }));
+    } catch (error) {
+      console.error("Помилка завантаження даних:", error);
+    }
+  }
+
+  function findCountyCode(countyName) {
+    const county = countiesData.find(c => c.name.toLowerCase().includes(countyName.toLowerCase()));
+    return county ? `Код округу: ${county.code}` : "Округ не знайдено. Перевірте правильність введеної назви.";
+  }
+
+  document.getElementById("searchBtn").addEventListener("click", async () => {
+    if (countiesData.length === 0) {
+      document.getElementById("result").textContent = "Завантаження даних...";
+      await fetchCounties();
+    }
+
+    const input = document.getElementById("countyInput").value.trim();
+    if (!input) {
+      document.getElementById("result").textContent = "Будь ласка, введіть назву.";
+      return;
+    }
+
+    const code = findCountyCode(input);
+    document.getElementById("result").textContent = code;
+    console.log(code);
+  });
+
+  // Завантажуємо дані одразу при відкритті сторінки
+  fetchCounties();
+</script>
+
+<div class="task-card">
+  <h2>Завдання 4: Валідація форми та події</h2>
+  <form id="myForm">
+    <div class="form-group">
+      <label for="first_name">Ім'я:</label>
+      <input type="text" id="first_name" name="first_name">
+    </div>
+    <div class="form-group">
+      <label for="last_name">Прізвище:</label>
+      <input type="text" id="last_name" name="last_name">
+    </div>
+    <div class="form-group">
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email">
+    </div>
+    <button type="submit">Відправити</button>
+  </form>
+</div>
+
+<script>
+  const form = document.getElementById("myForm");
+
+  form.addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const firstName = document.getElementById("first_name").value.trim();
+    const lastName = document.getElementById("last_name").value.trim();
+    const email = document.getElementById("email").value.trim();
+
+    if (!firstName || !lastName || !email) {
+      alert("Увага: Будь ласка, заповніть усі поля.");
+      return;
+    }
+
+    alert(`Дані користувача:\nІм'я: ${firstName}\nПрізвище: ${lastName}\nEmail: ${email}`);
+  });
+</script>
+
+<div class="task-card" id="task5-card">
+  <h2>Завдання 5: Анімація та взаємодія</h2>
+  <button onclick="moveLeft()" style="margin-bottom: 10px;">Вліво</button>
+  <button onclick="moveRight()" style="margin-bottom: 10px;">Вправо</button>
+
+  <div id="elid"></div>
+</div>
+
+<script>
+  let position = 0;
+  const step = 100; // Крок зміщення в пікселях
+
+  function moveLeft() {
+    position -= step;
+
+    // Обмеження зліва: позиція не може бути меншою за 0
+    if (position < 0) {
+      position = 0;
+    }
+
+    document.getElementById("elid").style.left = position + "px";
+  }
+
+  function moveRight() {
+    const el = document.getElementById("elid");
+    const parent = el.parentElement; // Наша рамка (.task-card)
+
+    // Отримуємо внутрішні відступи (padding) рамки, щоб кубик не "наїжджав" на них
+    const parentStyles = window.getComputedStyle(parent);
+    const paddingLeft = parseFloat(parentStyles.paddingLeft);
+    const paddingRight = parseFloat(parentStyles.paddingRight);
+
+    // Вираховуємо максимальну можливу позицію (ширина рамки мінус відступи мінус ширина кубика)
+    const maxRight = parent.clientWidth - paddingLeft - paddingRight - el.offsetWidth;
+
+    position += step;
+
+    // Обмеження справа: якщо позиція більша за максимум, ставимо на максимум
+    if (position > maxRight) {
+      position = maxRight;
+    }
+
+    el.style.left = position + "px";
+  }
+
+  // Захист на випадок зміни розміру вікна браузера
+  window.addEventListener('resize', () => {
+    const el = document.getElementById("elid");
+    const parent = el.parentElement;
+    const parentStyles = window.getComputedStyle(parent);
+    const maxRight = parent.clientWidth - parseFloat(parentStyles.paddingLeft) - parseFloat(parentStyles.paddingRight) - el.offsetWidth;
+
+    if (position > maxRight) {
+      position = maxRight > 0 ? maxRight : 0;
+      el.style.left = position + "px";
+    }
+  });
+</script>
+
+</body>
+</html>
