@@ -181,8 +181,8 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const subscriptionStore = useSubscriptionStore()
 
-// --- ЛОГІКА ТАРИФІВ ---
 const isAnnual = ref(true)
 
 const plans = ref([
@@ -193,7 +193,7 @@ const plans = ref([
     monthlyPrice: 99.00,
     annualMonthlyPrice: 83.25,
     annualOldTotal: 1188,
-    annualTotal: 999, // Більша ціна за рік
+    annualTotal: 999,
     savings: 189,
     features: [
       { text: 'Primary user only', subtext: '(extra team members for $35/month)' },
@@ -208,7 +208,7 @@ const plans = ref([
     monthlyPrice: 249.00,
     annualMonthlyPrice: 207.50,
     annualOldTotal: 2988,
-    annualTotal: 2490, // Більша ціна за рік
+    annualTotal: 2490,
     savings: 498,
     features: [
       { text: 'Primary user + 2 free team members', subtext: '(extra team members for $25/month)' },
@@ -223,7 +223,7 @@ const plans = ref([
     monthlyPrice: 549.00,
     annualMonthlyPrice: 457.50,
     annualOldTotal: 6588,
-    annualTotal: 5490, // Більша ціна за рік
+    annualTotal: 5490,
     savings: 1098,
     features: [
       { text: 'Primary user + 6 free team members', subtext: '(extra team members for $20/month)' },
@@ -235,10 +235,12 @@ const plans = ref([
 
 const goToCheckout = (planId) => {
   const billingType = isAnnual.value ? 'annual' : 'monthly'
-  router.push(`/checkout?plan=${planId}&billing=${billingType}`)
+
+  subscriptionStore.selectPlan(planId, billingType)
+
+  router.push('/checkout')
 }
 
-// --- ЛОГІКА ТАБЛИЦІ ТА API ---
 const viewMode = ref('card')
 const searchQuery = ref('')
 

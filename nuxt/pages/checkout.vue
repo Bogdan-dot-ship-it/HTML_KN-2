@@ -30,14 +30,19 @@
                 <span class="text-4xl font-extrabold text-gray-900">${{ plan.pricePerMonth.toFixed(2) }}</span>
                 <span class="text-gray-500">/month</span>
               </div>
-              <div class="text-sm text-gray-500 mb-3">
+
+              <div v-if="billingType === 'annual'" class="text-sm text-gray-500 mb-3">
                 billed yearly at <span class="line-through">${{ plan.oldPricePerYear }}</span> ${{ plan.pricePerYear }}
               </div>
-              <div class="inline-block bg-teal-50 text-teal-700 font-semibold px-3 py-1 rounded text-sm mb-6">
+              <div v-else class="text-sm text-gray-500 mb-3">
+                billed monthly
+              </div>
+
+              <div v-if="billingType === 'annual' && plan.savings" class="inline-block bg-teal-50 text-teal-700 font-semibold px-3 py-1 rounded text-sm mb-6">
                 ${{ plan.savings }} in savings
               </div>
 
-              <ul class="space-y-4">
+              <ul class="space-y-4 mt-6">
                 <li v-for="(feature, index) in plan.features" :key="index" class="flex items-start gap-3 text-sm">
                   <span class="text-teal-500 font-bold mt-0.5 mr-2">✓</span>
                   <div>
@@ -55,7 +60,7 @@
             <h3 class="text-lg font-bold text-gray-800 mb-6">Order Summary</h3>
 
             <div class="flex justify-between text-gray-700 mb-3">
-              <span>Annual Plan</span>
+              <span class="capitalize">{{ billingType }} Plan</span>
               <span>${{ plan.pricePerYear.toFixed(2) }}</span>
             </div>
             <div class="flex justify-between text-gray-700 font-bold mb-3 border-b border-gray-200 pb-3">
@@ -101,7 +106,7 @@
               <div class="flex items-start gap-3 mb-6">
                 <input v-model="form.consent" type="checkbox" id="consent" class="mt-1 w-4 h-4 cursor-pointer" required>
                 <label for="consent" class="text-sm text-gray-600 leading-tight cursor-pointer">
-                  I consent to <a href="#" class="font-bold text-gray-800 underline">Terms of Use</a> and understand my 3-day free trial will automatically convert to ${{ plan.pricePerYear.toFixed(2) }} per year starting on [Date]. The yearly fee will be automatically charged each year going forward unless I cancel my account at least one (1) business day before the end of the current billing period, which can be done by calling (888) 463-3163.
+                  I consent to <a href="#" class="font-bold text-gray-800 underline">Terms of Use</a> and understand my 3-day free trial will automatically convert to ${{ plan.pricePerYear.toFixed(2) }} per {{ billingType === 'annual' ? 'year' : 'month' }} starting on [Date].
                 </label>
               </div>
 
@@ -125,7 +130,8 @@
 </template>
 
 <script setup>
-// ВАЖЛИВО: Я прибрав "import { ref }..." — у Nuxt це викликає конфлікти і ламає поля вводу. Nuxt імпортує їх сам.
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 useHead({
   title: 'Checkout | Оформлення підписки',
@@ -135,9 +141,23 @@ useHead({
 })
 
 const router = useRouter()
+const subscriptionStore = useSubscriptionStore()
 
-// ВАЖЛИВО: Прибрано "await", щоб не блокувати сторінку і не ламати реактивність (введення тексту)
-const { data: plan, pending } = useFetch('/api/subscription/plan')
+const { selectedPlanId, billingType, hasSelectedPlan } = storeToRefs(subscriptionStore)
+
+onMounted(() => {
+  if (!hasSelectedPlan.value) {
+    router.push('/')
+  }
+})
+
+const { data: plan, pending } = useFetch('/api/subscription/plan', {
+  query: {
+    id: selectedPlanId,
+    type: billingType
+  },
+  lazy: true
+})
 
 const form = ref({
   cardNumber: '',
@@ -164,7 +184,11 @@ const submitForm = async () => {
   try {
     const response = await $fetch('/api/subscription/create', {
       method: 'POST',
-      body: form.value
+      body: {
+        ...form.value,
+        planId: selectedPlanId.value,
+        billingType: billingType.value
+      }
     })
 
     successMessage.value = response.message
