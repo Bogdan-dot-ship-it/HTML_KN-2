@@ -1,197 +1,257 @@
 <template>
-  <div class="p-8 max-w-[1200px] mx-auto font-sans bg-[#f9fafb] min-h-screen">
+  <div class="min-h-screen bg-gray-50 py-10 px-4">
+    <div class="max-w-7xl mx-auto">
 
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold text-gray-800">Start Your 3 Day Free Trial</h2>
-      <div class="flex items-center gap-3">
-        <span class="text-green-500 text-sm font-medium flex items-center">
-          Save up to 20%
-          <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
-        </span>
-        <div class="flex border border-gray-200 rounded-md overflow-hidden text-sm">
-          <button class="px-4 py-1.5 bg-white font-semibold text-gray-800 border-r border-gray-200 shadow-sm">Annual</button>
-          <button class="px-4 py-1.5 bg-gray-50 text-gray-500 font-medium hover:bg-gray-100">Monthly</button>
+      <div class="flex flex-col md:flex-row justify-between items-center mb-10">
+        <h1 class="text-3xl font-extrabold text-gray-900">Start Your 3 Day Free Trial</h1>
+        <div class="flex items-center gap-4 mt-4 md:mt-0">
+          <span class="text-green-500 font-semibold text-sm">Save up to 20% ⤻</span>
+          <div class="flex bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+            <button
+              @click="isAnnual = true"
+              :class="isAnnual ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'"
+              class="px-4 py-2 rounded-md text-sm transition-all"
+            >
+              Annual
+            </button>
+            <button
+              @click="isAnnual = false"
+              :class="!isAnnual ? 'bg-white shadow text-gray-900 font-bold' : 'text-gray-500 hover:text-gray-700'"
+              class="px-4 py-2 rounded-md text-sm transition-all"
+            >
+              Monthly
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-      <div v-for="plan in pricingPlans" :key="plan.id" class="border border-gray-200 rounded-xl bg-white shadow-sm flex flex-col relative overflow-hidden pt-1">
-        <div :class="['absolute top-0 left-0 w-full h-1', plan.color]"></div>
-        <div class="p-6">
-          <h3 class="text-[17px] font-bold text-gray-800 mb-4">{{ plan.title }}</h3>
-          <p class="text-xs text-gray-500 mb-1 font-medium">{{ plan.trial }}</p>
-          <div class="flex items-baseline mb-1">
-            <span class="text-4xl font-extrabold text-gray-900">${{ plan.price }}</span>
-            <span class="text-sm text-gray-500 ml-1">/month</span>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div v-for="plan in plans" :key="plan.id" class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+          <div :class="plan.colorClass" class="h-1 w-full"></div>
+
+          <div class="p-6 flex-grow">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">{{ plan.name }} - {{ isAnnual ? 'Annual' : 'Monthly' }}</h2>
+            <div class="text-sm text-gray-500 mb-1">3-days free then:</div>
+
+            <div class="flex items-baseline gap-1 mb-2">
+              <span class="text-5xl font-black text-gray-900">
+                ${{ isAnnual ? plan.annualTotal : plan.monthlyPrice }}
+              </span>
+              <span class="text-gray-500 font-medium text-lg ml-1">
+                {{ isAnnual ? '/year' : '/month' }}
+              </span>
+            </div>
+
+            <div v-if="isAnnual" class="text-sm text-gray-500 mb-3">
+              that's just <span class="font-bold">${{ plan.annualMonthlyPrice }}</span>/month!
+            </div>
+            <div v-else class="text-sm text-gray-500 mb-3 h-5">
+              billed monthly
+            </div>
+
+            <div v-if="isAnnual" class="inline-block bg-green-100 text-green-700 font-semibold px-3 py-1 rounded text-sm mb-6">
+              ${{ plan.savings }} in savings
+            </div>
+            <div v-else class="h-7 mb-6"></div>
+
+            <button
+              @click="goToCheckout(plan.id)"
+              class="w-full bg-[#f97316] hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition-colors mb-6 shadow-sm"
+            >
+              Try It Free
+            </button>
+
+            <ul class="space-y-4">
+              <li v-for="(feature, idx) in plan.features" :key="idx" class="flex items-start gap-3 text-sm">
+                <span class="text-green-500 font-bold mt-0.5">+</span>
+                <div>
+                  <span class="font-medium text-gray-700">{{ feature.text }}</span>
+                  <div v-if="feature.subtext" class="text-gray-500 text-xs mt-0.5">{{ feature.subtext }}</div>
+                </div>
+              </li>
+            </ul>
           </div>
-          <p class="text-[13px] text-gray-500 mb-2">billed yearly at <span class="line-through">{{ plan.oldPrice }}</span> {{ plan.newPrice }}</p>
-          <div class="inline-block bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded mb-6">{{ plan.savings }}</div>
-          <button class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 rounded-md transition-colors mb-6 shadow-sm">Try It Free</button>
-          <ul class="space-y-3">
-            <li v-for="(feature, index) in plan.features" :key="index" class="flex items-start">
-              <svg class="w-4 h-4 text-green-400 mr-2 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" /></svg>
-              <div>
-                <p class="text-[13px] text-gray-700 font-medium leading-tight">{{ feature.main }}</p>
-                <p v-if="feature.sub" class="text-[12px] text-gray-500 mt-0.5 leading-tight">{{ feature.sub }}</p>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
+
+        <div class="p-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+
+          <div class="flex bg-gray-50 p-1 rounded border border-gray-200">
+            <button
+              @click="viewMode = 'card'"
+              :class="viewMode === 'card' ? 'bg-white shadow text-gray-800' : 'text-gray-500'"
+              class="px-3 py-1.5 rounded flex items-center gap-2 text-sm font-medium transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+              Card
+            </button>
+            <button
+              @click="viewMode = 'list'"
+              :class="viewMode === 'list' ? 'bg-white shadow text-gray-800' : 'text-gray-500'"
+              class="px-3 py-1.5 rounded flex items-center gap-2 text-sm font-medium transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+              List
+            </button>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+              <input
+                v-model="searchQuery"
+                type="text"
+                placeholder="Пошук..."
+                class="pl-9 pr-4 py-2 bg-[#1e293b] text-gray-200 placeholder-gray-400 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 w-64"
+              >
+            </div>
+            <button class="text-sm text-gray-600 flex items-center gap-1 hover:text-gray-900">Display</button>
+            <button class="text-sm text-gray-600 flex items-center gap-1 hover:text-gray-900">Sort by</button>
+            <button class="text-sm text-gray-600 flex items-center gap-1 hover:text-gray-900">Actions</button>
+          </div>
+        </div>
+
+        <div v-if="pending" class="p-8 text-center text-gray-500">Завантаження даних...</div>
+
+        <div v-else class="p-0">
+
+          <table v-if="viewMode === 'list'" class="w-full text-left border-collapse">
+            <thead>
+            <tr class="bg-[#1e293b] text-white text-sm">
+              <th class="p-4 font-semibold">Фото</th>
+              <th class="p-4 font-semibold">Назва</th>
+              <th class="p-4 font-semibold">Опис</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="item in filteredItems" :key="item.id" class="border-b border-gray-100 hover:bg-gray-50">
+              <td class="p-4 w-24">
+                <div class="w-12 h-12 bg-[#f1f5f9] rounded-md flex items-center justify-center text-xl shadow-sm">{{ item.icon }}</div>
+              </td>
+              <td class="p-4 font-bold text-gray-800">{{ item.name }}</td>
+              <td class="p-4 text-gray-500 text-sm">{{ item.description }}</td>
+            </tr>
+            <tr v-if="filteredItems.length === 0">
+              <td colspan="3" class="p-8 text-center text-gray-500">Нічого не знайдено</td>
+            </tr>
+            </tbody>
+          </table>
+
+          <div v-if="viewMode === 'card'" class="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 bg-gray-50">
+            <div v-for="item in filteredItems" :key="item.id" class="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden flex flex-col group hover:shadow-lg transition-all duration-300">
+
+              <div class="h-1.5 w-full bg-[#1e293b]"></div>
+
+              <div class="p-5 flex-grow relative flex flex-col">
+                <div class="absolute top-4 right-4 bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded text-[10px] uppercase tracking-wide">
+                  featured
+                </div>
+
+                <div class="w-14 h-14 bg-[#f8fafc] rounded-md flex items-center justify-center text-2xl mb-4 shadow-sm border border-gray-100">
+                  {{ item.icon }}
+                </div>
+
+                <h3 class="font-bold text-gray-900 mb-2">{{ item.name }}</h3>
+                <p class="text-sm text-gray-600 line-clamp-3 mb-5 flex-grow">{{ item.description }}</p>
+
+                <div class="flex flex-wrap gap-2 mt-auto">
+                  <span v-for="tag in item.tags" :key="tag" class="bg-blue-50 text-blue-600 font-medium px-2 py-1 rounded text-xs border border-blue-100">
+                    {{ tag }}
+                  </span>
+                </div>
               </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
+            </div>
 
-    <div class="bg-white border border-gray-100 shadow-sm rounded-lg overflow-hidden">
-
-      <div class="flex flex-wrap items-center justify-between p-4 text-sm text-gray-700">
-
-        <div class="flex items-center space-x-4 mb-2 md:mb-0">
-          <div class="flex items-center space-x-1 cursor-pointer">
-            <input type="checkbox" class="rounded border-gray-300 w-4 h-4 cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-500 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-          </div>
-          <div class="flex border border-gray-200 rounded-md overflow-hidden">
-            <button class="flex items-center space-x-2 px-4 py-1.5 bg-[#f8f9fa] text-gray-500 hover:bg-gray-100 border-r border-gray-200 transition-colors">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>
-              <span>Card</span>
-            </button>
-            <button class="flex items-center space-x-2 px-4 py-1.5 bg-white text-gray-800 font-medium shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><circle cx="4" cy="6" r="1.5"></circle><circle cx="4" cy="12" r="1.5"></circle><circle cx="4" cy="18" r="1.5"></circle></svg>
-              <span>List</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="flex items-center space-x-6 font-medium text-gray-600">
-
-          <div class="w-48">
-            <UInput v-model="q" placeholder="Пошук..." icon="i-lucide-search" size="sm" />
+            <div v-if="filteredItems.length === 0" class="col-span-full py-12 text-center text-gray-500 bg-white rounded-lg border border-gray-200">
+              Нічого не знайдено
+            </div>
           </div>
 
-          <button class="hidden md:flex items-center space-x-2 hover:text-gray-900 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="8" y="8" width="12" height="12" rx="2" ry="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h2"></path></svg>
-            <span>Display</span>
-          </button>
-          <button class="hidden md:flex items-center space-x-2 hover:text-gray-900 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"></line><line x1="4" y1="12" x2="14" y2="12"></line><line x1="4" y1="18" x2="8" y2="18"></line></svg>
-            <span>Sort by</span>
-          </button>
-          <button class="hidden md:flex items-center space-x-1.5 hover:text-gray-900 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"></circle><circle cx="12" cy="12" r="2"></circle><circle cx="12" cy="19" r="2"></circle></svg>
-            <span>Actions</span>
-          </button>
         </div>
       </div>
 
-      <UTable
-        :data="paginatedRows"
-        :columns="columns"
-        v-model:sorting="sorting"
-        class="custom-table"
-      />
-
-      <div class="p-4 flex justify-end">
-        <UPagination v-model:page="page" :items-per-page="pageCount" :total="sortedRows.length" />
-      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, h } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
-useHead({ title: 'Список продуктів' })
+const router = useRouter()
 
-// API
-const { data: pricingPlans } = await useFetch('/api/pricing')
-const { data: productsData } = await useFetch('https://dummyjson.com/products?limit=100')
-const products = computed(() => productsData.value?.products || [])
+// --- ЛОГІКА ТАРИФІВ ---
+const isAnnual = ref(true)
 
-const columns = [
+const plans = ref([
   {
-    accessorKey: 'thumbnail', header: 'Фото',
-    cell: ({ row }) => h('img', {
-      src: row.original.thumbnail,
-      class: 'w-[100px] h-[100px] object-cover rounded bg-gray-50 border border-gray-200'
-    })
+    id: 'starter',
+    name: 'Starter',
+    colorClass: 'bg-blue-500',
+    monthlyPrice: 99.00,
+    annualMonthlyPrice: 83.25,
+    annualOldTotal: 1188,
+    annualTotal: 999, // Більша ціна за рік
+    savings: 189,
+    features: [
+      { text: 'Primary user only', subtext: '(extra team members for $35/month)' },
+      { text: 'Save unlimited properties' },
+      { text: '10,000 exports', subtext: '(additional exports at $0.02 each)' }
+    ]
   },
-  { accessorKey: 'title', header: 'Назва' },
-  { accessorKey: 'description', header: 'Опис' },
   {
-    accessorKey: 'price', header: 'Ціна',
-    cell: ({ row }) => h('span', { class: 'font-semibold text-gray-800' }, `$${row.original.price}`)
+    id: 'team',
+    name: 'Team',
+    colorClass: 'bg-teal-400',
+    monthlyPrice: 249.00,
+    annualMonthlyPrice: 207.50,
+    annualOldTotal: 2988,
+    annualTotal: 2490, // Більша ціна за рік
+    savings: 498,
+    features: [
+      { text: 'Primary user + 2 free team members', subtext: '(extra team members for $25/month)' },
+      { text: 'Save unlimited properties' },
+      { text: '50,000 exports', subtext: '(additional exports at $0.01 each)' }
+    ]
   },
   {
-    accessorKey: 'rating', header: 'Оцінка',
-    cell: ({ row }) => h('span', { class: row.original.rating < 4.5 ? 'text-red-500 font-bold' : 'text-green-600 font-bold' }, row.original.rating)
-  },
-  { accessorKey: 'brand', header: 'Бренд' },
-  { accessorKey: 'category', header: 'Категорія' }
-]
-
-const q = ref('')
-const page = ref(1)
-const pageCount = ref(5)
-const sorting = ref([{ id: 'title', desc: false }])
-
-const filteredRows = computed(() => {
-  if (!q.value) return products.value
-  return products.value.filter((p) => Object.values(p).some((v) => String(v).toLowerCase().includes(q.value.toLowerCase())))
-})
-
-const sortedRows = computed(() => {
-  const sorted = [...filteredRows.value]
-  if (sorting.value.length > 0) {
-    const { id, desc } = sorting.value[0]
-    sorted.sort((a, b) => {
-      if (a[id] < b[id]) return desc ? 1 : -1
-      if (a[id] > b[id]) return desc ? -1 : 1
-      return 0
-    })
+    id: 'business',
+    name: 'Business',
+    colorClass: 'bg-blue-200',
+    monthlyPrice: 549.00,
+    annualMonthlyPrice: 457.50,
+    annualOldTotal: 6588,
+    annualTotal: 5490, // Більша ціна за рік
+    savings: 1098,
+    features: [
+      { text: 'Primary user + 6 free team members', subtext: '(extra team members for $20/month)' },
+      { text: 'Save unlimited properties' },
+      { text: '100,000 exports', subtext: '(additional exports at $0.01 each)' }
+    ]
   }
-  return sorted
-})
+])
 
-const paginatedRows = computed(() => {
-  const start = (page.value - 1) * pageCount.value
-  return sortedRows.value.slice(start, start + pageCount.value)
-})
+const goToCheckout = (planId) => {
+  const billingType = isAnnual.value ? 'annual' : 'monthly'
+  router.push(`/checkout?plan=${planId}&billing=${billingType}`)
+}
 
-watch([q, sorting], () => { page.value = 1 }, { deep: true })
+// --- ЛОГІКА ТАБЛИЦІ ТА API ---
+const viewMode = ref('card')
+const searchQuery = ref('')
+
+const { data: itemsData, pending } = useFetch('/api/products', { lazy: true })
+
+const filteredItems = computed(() => {
+  if (!itemsData.value) return []
+  if (!searchQuery.value) return itemsData.value
+
+  const query = searchQuery.value.toLowerCase()
+  return itemsData.value.filter(item =>
+    item.name.toLowerCase().includes(query) ||
+    item.description.toLowerCase().includes(query)
+  )
+})
 </script>
-
-<style scoped>
-
-:deep(.custom-table thead tr) {
-  background-color: #2d2d2d !important;
-}
-
-:deep(.custom-table thead th) {
-  color: white !important;
-  padding: 16px !important;
-  font-weight: 600 !important;
-  font-size: 0.875rem !important;
-}
-
-:deep(.custom-table thead th:first-child) {
-  border-right: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-:deep(.custom-table tbody td:first-child) {
-  border-right: 1px solid #f3f4f6 !important;
-}
-
-:deep(.custom-table tbody tr) {
-  border-bottom: 1px solid #f9fafb !important;
-  transition: background-color 0.2s ease;
-}
-
-:deep(.custom-table tbody tr:hover) {
-  background-color: #f3f4f6 !important;
-}
-
-:deep(.custom-table tbody td) {
-  padding: 12px 16px !important;
-  font-size: 0.875rem !important;
-}
-</style>
